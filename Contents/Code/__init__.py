@@ -8,12 +8,12 @@ PHOTO_NS = {'c':'http://purl.org/rss/1.0/modules/content/'}
 
 ####################################################################################################
 def Start():
-  Plugin.AddPrefixHandler("/photos/annakimphotography", PhotoMenu, 'Anna Kim Photography', 'icon-default.png', 'art-default.png')
+  Plugin.AddPrefixHandler("/photos/annakimphotography", PhotoMenu, 'Anna Kim Photography', 'icon-default.png', 'art-default.jpg')
   Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
   Plugin.AddViewGroup("Images", viewMode="Pictures", mediaType="items")
   MediaContainer.title1 = 'Anna Kim Photography'
   MediaContainer.content = 'Items'
-  MediaContainer.art = R('art-default.png')
+  MediaContainer.art = R('art-default.jpg')
   HTTP.SetCacheTime(3600*3)
 
 ####################################################################################################
