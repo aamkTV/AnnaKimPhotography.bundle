@@ -1,6 +1,3 @@
-from PMS import *
-from PMS.Objects import *
-from PMS.Shortcuts import *
 from BeautifulSoup import BeautifulStoneSoup as BSS
 
 RSS_FEED = 'http://www.annakimphotography.com/?feed=rss2'
@@ -39,7 +36,7 @@ def PhotoMenu():
 def PhotoList(sender, key):
   dir = MediaContainer(viewGroup='Images', title2="Photos")
   image = 1
-  for item in XML.ElementFromURL(key, True).xpath('//img'):
+  for item in HTML.ElementFromURL(key).xpath('//img'):
     if item.get('src').find('wp-content/uploads') != -1:
       dir.Append(PhotoItem(item.get('src'), title="Photo %d" % image, thumb=item.get('src')))
       image += 1
@@ -47,5 +44,5 @@ def PhotoList(sender, key):
 
 ####################################################################################################
 def FindPhotos(html):
-  code = XML.ElementFromString(html, True)
+  code = HTML.ElementFromString(html)
   return [i.get('src') for i in code.xpath('//img')]
