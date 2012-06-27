@@ -1,6 +1,6 @@
 from BeautifulSoup import BeautifulStoneSoup as BSS
 
-RSS_FEED = 'http://www.annakimphotography.com/feed'
+RSS_FEED = 'http://www.annakimphotography.com/blog/feed/'
 PHOTO_NS = {'c':'http://purl.org/rss/1.0/modules/content/'}
 
 ####################################################################################################
