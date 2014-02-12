@@ -1,48 +1,41 @@
-from BeautifulSoup import BeautifulStoneSoup as BSS
-
+NAME = 'Anna Kim Photography'
 RSS_FEED = 'http://www.annakimphotography.com/blog/feed/'
-PHOTO_NS = {'c':'http://purl.org/rss/1.0/modules/content/'}
+RSS_NS = {'content': 'http://purl.org/rss/1.0/modules/content/'}
 
 ####################################################################################################
 def Start():
-  Plugin.AddPrefixHandler("/photos/annakimphotography", PhotoMenu, 'Anna Kim Photography', 'icon-default.png', 'art-default.jpg')
-  Plugin.AddViewGroup("Details", viewMode="InfoList", mediaType="items")
-  Plugin.AddViewGroup("Images", viewMode="Pictures", mediaType="items")
-  MediaContainer.title1 = 'Anna Kim Photography'
-  MediaContainer.content = 'Items'
-  MediaContainer.art = R('art-default.jpg')
-  HTTP.SetCacheTime(3600*3)
+
+	ObjectContainer.title1 = NAME
+	HTTP.CacheTime = CACHE_1HOUR
 
 ####################################################################################################
-def UpdateCache():
-  HTTP.Request(RSS_FEED)
+@handler('/photos/annakimphotography', NAME)
+def MainMenu():
 
-####################################################################################################
-def PhotoMenu():
-  dir = MediaContainer(viewGroup='Details', title2="Photos")
-  for item in XML.ElementFromURL(RSS_FEED).xpath('//item'):
-    title = item.find('title').text
-    summary = item.xpath('description')[0].text.replace('<p>','').replace('</p>','').replace('<br />',"\n").replace(' [...]', '...')
-    soup = BSS(summary, convertEntities=BSS.HTML_ENTITIES) 
-    summary = soup.contents[0]
-    date = Datetime.ParseDate(item.find('pubDate').text).strftime('%a %b %d, %Y')
-    try: thumb = FindPhotos(item.xpath('c:encoded', namespaces=PHOTO_NS)[0].text)[0]
-    except: continue
-    dir.Append(Function(DirectoryItem(PhotoList, title, date, summary, thumb), key=item.find('link').text))
-    
-  return dir
-  
-####################################################################################################
-def PhotoList(sender, key):
-  dir = MediaContainer(viewGroup='Images', title2="Photos")
-  image = 1
-  for item in HTML.ElementFromURL(key).xpath('//img'):
-    if item.get('src').find('wp-content/uploads') != -1:
-      dir.Append(PhotoItem(item.get('src'), title="Photo %d" % image, thumb=item.get('src')))
-      image += 1
-  return dir
+	oc = ObjectContainer()
 
-####################################################################################################
-def FindPhotos(html):
-  code = HTML.ElementFromString(html)
-  return [i.get('src') for i in code.xpath('//img')]
+	xml = XML.ElementFromURL(RSS_FEED)
+
+	for item in xml.xpath('//item'):
+
+		content = item.xpath('./content:encoded/text()', namespaces=RSS_NS)[0]
+		html = HTML.ElementFromString(content)
+		thumb = html.xpath('//img[contains(@src, "/uploads/")]/@src')
+
+		if len(thumb) < 1:
+			continue
+
+		url = item.xpath('./link/text()')[0]
+		title = item.xpath('./title/text()')[0]
+		summary = item.xpath('./description/text()')[0]
+		originally_available_at = Datetime.ParseDate(item.xpath('./pubDate')[0].text)
+
+		oc.add(PhotoAlbumObject(
+			url = url,
+			title = String.DecodeHTMLEntities(title),
+			summary = String.DecodeHTMLEntities(summary),
+			originally_available_at = originally_available_at,
+			thumb = Resource.ContentsOfURLWithFallback(url=thumb[0])
+		))
+
+	return oc
