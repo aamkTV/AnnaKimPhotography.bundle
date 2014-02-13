@@ -1,5 +1,6 @@
 NAME = 'Anna Kim Photography'
 RSS_FEED = 'http://www.annakimphotography.com/blog/feed/'
+
 RSS_NS = {'content': 'http://purl.org/rss/1.0/modules/content/'}
 
 ####################################################################################################
@@ -10,11 +11,15 @@ def Start():
 
 ####################################################################################################
 @handler('/photos/annakimphotography', NAME)
-def MainMenu():
+@route('/photos/annakimphotography/blog/{page}', page=int)
+def MainMenu(page=1):
 
 	oc = ObjectContainer()
 
-	xml = XML.ElementFromURL(RSS_FEED)
+	if page == 1:
+		xml = XML.ElementFromURL(RSS_FEED)
+	else:
+		xml = XML.ElementFromURL('%s?paged=%d' % (RSS_FEED, page))
 
 	for item in xml.xpath('//item'):
 
@@ -22,7 +27,7 @@ def MainMenu():
 		html = HTML.ElementFromString(content)
 		thumb = html.xpath('//img[contains(@src, "/uploads/")]/@src')
 
-		if len(thumb) < 1:
+		if len(thumb) <= 1:
 			continue
 
 		url = item.xpath('./link/text()')[0]
@@ -37,5 +42,10 @@ def MainMenu():
 			originally_available_at = originally_available_at,
 			thumb = Resource.ContentsOfURLWithFallback(url=thumb[0])
 		))
+
+	oc.add(NextPageObject(
+		key = Callback(MainMenu, page=page+1),
+		title = 'More...'
+	))
 
 	return oc
