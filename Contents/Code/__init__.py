@@ -43,9 +43,14 @@ def MainMenu(page=1):
 			thumb = Resource.ContentsOfURLWithFallback(url=thumb[0])
 		))
 
-	oc.add(NextPageObject(
-		key = Callback(MainMenu, page=page+1),
-		title = 'More...'
-	))
+	try:
+		next_page = HTTP.Request('%s?paged=%d' % (RSS_FEED, page+1)).headers
+
+		oc.add(NextPageObject(
+			key = Callback(MainMenu, page=page+1),
+			title = 'More...'
+		))
+	except:
+		pass
 
 	return oc
